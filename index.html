@@ -74,7 +74,7 @@
                 </div>
                 <div>
                     <button type="submit" id="submit-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all transform hover:scale-105 flex items-center justify-center">
-                        <span id="btn-text">Criar Roteiro Mágico</span>
+                        <span id="btn-text">Gerar Roteiro (Modo Demo)</span>
                         <div id="btn-loader" class="hidden loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3" style="border-top-color: white;"></div>
                     </button>
                 </div>
@@ -112,6 +112,37 @@
             const year = today.getFullYear();
             document.getElementById('data').value = `${year}-${month}`;
         });
+        
+        // --- MODO DE DEMONSTRAÇÃO ---
+        // Dados de exemplo para evitar a chamada de API e o uso de chave
+        const sampleData = {
+          "cidade": "Lisboa",
+          "pais": "Portugal",
+          "estimativa_custo": {
+            "moeda_local": "EUR",
+            "valor_total_aproximado": 350,
+            "detalhes": "Custo estimado para 5 dias, com base em hostel (25€/dia), alimentação económica (25€/dia) e transporte/passeios (20€/dia)."
+          },
+          "checklist_bagagem": {
+            "Roupas Essenciais": ["Tênis confortável para caminhada", "Casaco leve (mesmo no verão)", "Calças de ganga/jeans", "T-shirts e Camisolas", "Pijama"],
+            "Higiene": ["Protetor solar", "Itens básicos de higiene", "Toalha de secagem rápida"],
+            "Eletrônicos": ["Carregador portátil (Power bank)", "Adaptador de tomada europeu", "Telemóvel e carregador"]
+          },
+          "sugestoes_hospedagem": [
+            { "nome": "Yes! Lisbon Hostel", "descricao": "Famoso pela atmosfera social e jantares comunitários. Ótimo para conhecer outros viajantes." },
+            { "nome": "Goodmorning All-Inclusive Hostel", "descricao": "Oferece um dos melhores pequenos-almoços e atividades diárias incluídas na diária." },
+            { "nome": "Lost Inn Lisbon Hostel", "descricao": "Localizado no Chiado, super central, com um staff amigável e ambiente acolhedor." }
+          ],
+          "dicas_economia": {
+            "alimentacao": ["Tascas e restaurantes em Alfama e Mouraria", "Menus do dia ao almoço (prato, bebida e café)", "Pastelarias para lanches baratos (salgados e doces)"],
+            "lembrancinhas": ["Feira da Ladra (Terças e Sábados)", "Lojas de souvenirs na Rua Augusta (pesquisar preços)", "Produtos de cortiça são um clássico local"]
+          },
+          "roteiro_diario": [
+            { "dia": 1, "titulo": "Chegada e o Coração de Lisboa", "atividades": ["Explorar a Baixa Pombalina (Rua Augusta, Praça do Comércio)", "Subir o Elevador de Santa Justa para uma vista incrível", "Jantar e ouvir Fado no bairro de Alfama"], "dica_logistica": "Compre o cartão 'Viva Viagem' para usar em todo o transporte público. Carregue com a opção 'Zapping'.", "tempo_respirar": "Sente-se nas escadarias da Praça do Comércio a ver o Tejo e os barcos a passar." },
+            { "dia": 2, "titulo": "História e Pastéis de Nata", "atividades": ["Visitar a Torre de Belém", "Explorar o Mosteiro dos Jerónimos", "Provar os autênticos Pastéis de Belém"], "dica_logistica": "Apanhe o elétrico 15E na Praça da Figueira para chegar a Belém de forma fácil e cénica.", "tempo_respirar": "Faça um piquenique no Jardim da Torre de Belém com um pastel de nata e um café." },
+            { "dia": 3, "titulo": "Vistas, Elétricos e Bairros", "atividades": ["Apanhar o famoso elétrico 28", "Perder-se nas ruelas do Castelo de São Jorge", "Ver o pôr do sol no Miradouro da Senhora do Monte (a melhor vista!)"], "dica_logistica": "O bilhete do elétrico 28 pode ser comprado a bordo, mas é mais caro. Use o seu cartão Viva Viagem.", "tempo_respirar": "Tome uma ginjinha (licor de cereja) num dos pequenos bares de Alfama." }
+          ]
+        };
 
         const form = document.getElementById('roteiro-form');
         const resultadoDiv = document.getElementById('resultado-roteiro');
@@ -123,71 +154,35 @@
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const destino = document.getElementById('destino').value;
-            const dias = document.getElementById('dias').value;
-            const dataViagem = document.getElementById('data').value;
-            const [ano, mes] = dataViagem.split('-');
 
             resultadoDiv.classList.add('hidden');
             errorMessage.classList.add('hidden');
             submitBtn.disabled = true;
-            btnText.textContent = 'Criando...';
+            btnText.textContent = 'A gerar...';
             btnLoader.classList.remove('hidden');
-
-            const prompt = `Crie um roteiro de viagem completo para ${dias} dias em ${destino}, para uma viagem em ${mes}/${ano}. A persona é um viajante económico.
-A resposta DEVE ser um objeto JSON, sem formatação markdown.
-O JSON deve ter a seguinte estrutura:
-{
-  "cidade": "string",
-  "pais": "string",
-  "estimativa_custo": { "moeda_local": "string", "valor_total_aproximado": "number", "detalhes": "string" },
-  "checklist_bagagem": { "Roupas Essenciais": ["item1", "item2"], "Higiene": ["item1", "item2"], "Eletrônicos": ["item1", "item2"] },
-  "sugestoes_hospedagem": [ { "nome": "string", "descricao": "string" } ],
-  "dicas_economia": { "alimentacao": ["dica1", "dica2"], "lembrancinhas": ["dica1", "dica2"] },
-  "roteiro_diario": [
-    {
-      "dia": "number",
-      "titulo": "string",
-      "atividades": ["atividade1", "atividade2", "atividade3"],
-      "dica_logistica": "string",
-      "tempo_respirar": "string"
-    }
-  ]
-}
-Responda apenas com o JSON.`;
             
+            // Simula uma pequena demora, como se estivesse a chamar a API
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
             try {
-                const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-                const payload = {
-                  contents: chatHistory,
-                  generationConfig: { responseMimeType: "application/json" }
-                };
-                const apiKey = "";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                // Em vez de chamar a API, usamos os nossos dados de exemplo
+                const data = sampleData; 
                 
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const result = await response.json();
-
-                if (result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) {
-                    const data = JSON.parse(result.candidates[0].content.parts[0].text);
-                    displayRoteiro(data);
-                } else {
-                   throw new Error("Resposta da API veio vazia ou em formato inesperado.");
+                // Ajustamos o número de dias no exemplo para corresponder ao input do usuário, para uma melhor demonstração
+                const diasInput = parseInt(document.getElementById('dias').value) || 3;
+                data.roteiro_diario = sampleData.roteiro_diario.slice(0, diasInput);
+                if(data.roteiro_diario.length === 0 && sampleData.roteiro_diario.length > 0){
+                    data.roteiro_diario.push(sampleData.roteiro_diario[0]);
                 }
 
+                displayRoteiro(data);
+
             } catch (error) {
-                console.error("Erro ao gerar roteiro:", error);
+                console.error("Erro ao exibir roteiro de demonstração:", error);
                 errorMessage.classList.remove('hidden');
             } finally {
                 submitBtn.disabled = false;
-                btnText.textContent = 'Criar Roteiro Mágico';
+                btnText.textContent = 'Gerar Roteiro (Modo Demo)';
                 btnLoader.classList.add('hidden');
             }
         });
@@ -215,22 +210,17 @@ Responda apenas com o JSON.`;
             tabsDiv.innerHTML = '';
             tabContentsDiv.innerHTML = '';
             
-            // Header do Roteiro
             headerDiv.innerHTML = `
                 <h2 class="text-3xl font-bold text-gray-800">Seu Roteiro para ${data.cidade}</h2>
-                <p class="text-md text-gray-500">Viagem de ${data.roteiro_diario.length} dias em ${document.getElementById('data').value.replace('-', '/')}</p>`;
+                <p class="text-md text-gray-500">Viagem de ${data.roteiro_diario.length} dias (Exemplo)</p>`;
 
-            // -- Criar Abas e Conteúdos --
+            // -- Abas e Conteúdos --
             
-            // 1. Aba do Roteiro
             tabsDiv.innerHTML += `<button class="tab-btn flex-1 p-4 font-semibold border-b-2 border-transparent transition-colors" data-tab="roteiro"><i data-lucide="map"></i>Roteiro</button>`;
             let roteiroHtml = `<div id="tab-roteiro" class="tab-content space-y-6">`;
             data.roteiro_diario.forEach((dia, index) => {
                 let atividadesHtml = '<ul class="space-y-3">';
-                
-                const atividadesDoDia = Array.isArray(dia.atividades) ? dia.atividades : [String(dia.atividades || "Nenhuma atividade especificada")];
-
-                atividadesDoDia.forEach(atividade => {
+                dia.atividades.forEach(atividade => {
                     atividadesHtml += `<li class="flex items-start"><i data-lucide="check-circle-2" class="text-green-500 mt-1 flex-shrink-0"></i><span>${atividade} <a href="${createMapLink(atividade, data.cidade)}" target="_blank" class="text-indigo-600 hover:underline text-sm ml-1">(Ver no mapa)</a></span></li>`;
                 });
                 atividadesHtml += '</ul>';
@@ -248,13 +238,11 @@ Responda apenas com o JSON.`;
             roteiroHtml += `</div>`;
             tabContentsDiv.innerHTML += roteiroHtml;
 
-            // 2. Aba da Mala
             tabsDiv.innerHTML += `<button class="tab-btn flex-1 p-4 font-semibold border-b-2 border-transparent transition-colors" data-tab="mala"><i data-lucide="suitcase"></i>Mala</button>`;
             let checklistHtml = `<div id="tab-mala" class="tab-content"><div class="bg-white p-6 rounded-2xl shadow-lg space-y-4 fade-in">`;
             for (const categoria in data.checklist_bagagem) {
                 checklistHtml += `<h4 class="font-semibold text-lg pt-2">${categoria}</h4><ul class="text-gray-700 space-y-2">`;
-                const items = Array.isArray(data.checklist_bagagem[categoria]) ? data.checklist_bagagem[categoria] : [String(data.checklist_bagagem[categoria])];
-                items.forEach(item => {
+                data.checklist_bagagem[categoria].forEach(item => {
                     checklistHtml += `<li class="flex items-center"><i data-lucide="check" class="text-gray-400 w-4 h-4 mr-2"></i>${item}</li>`;
                 });
                 checklistHtml += `</ul>`;
@@ -262,26 +250,20 @@ Responda apenas com o JSON.`;
             checklistHtml += `</div></div>`;
             tabContentsDiv.innerHTML += checklistHtml;
             
-            // 3. Aba de Dicas
             tabsDiv.innerHTML += `<button class="tab-btn flex-1 p-4 font-semibold border-b-2 border-transparent transition-colors" data-tab="dicas"><i data-lucide="piggy-bank"></i>Dicas</button>`;
             let dicasHtml = `<div id="tab-dicas" class="tab-content space-y-6">`;
-            // Custo
             dicasHtml += `<div class="bg-white p-6 rounded-2xl shadow-lg fade-in"><h3 class="text-xl font-bold mb-3 flex items-center"><i data-lucide="wallet"></i>Estimativa de Custo</h3><p class="text-3xl font-bold text-indigo-600">${data.estimativa_custo.valor_total_aproximado} <span class="text-lg font-medium text-gray-500">${data.estimativa_custo.moeda_local}</span></p><p class="text-sm text-gray-500 mt-2">${data.estimativa_custo.detalhes}</p></div>`;
-            // Hospedagem
             dicasHtml += `<div class="bg-white p-6 rounded-2xl shadow-lg fade-in" style="animation-delay: 100ms"><h3 class="text-xl font-bold mb-4 flex items-center"><i data-lucide="bed-double"></i>Sugestões de Hostels</h3><div class="space-y-4">`;
             data.sugestoes_hospedagem.forEach(hostel => {
                 dicasHtml += `<div><h4 class="font-semibold">${hostel.nome}</h4><p class="text-sm text-gray-600">${hostel.descricao} <a href="${createMapLink('Hostel ' + hostel.nome, data.cidade)}" target="_blank" class="text-indigo-600 hover:underline">(Pesquisar)</a></p></div>`;
             });
             dicasHtml += `</div></div>`;
-             // Economia
             dicasHtml += `<div class="bg-white p-6 rounded-2xl shadow-lg fade-in" style="animation-delay: 200ms"><h3 class="text-xl font-bold mb-4 flex items-center"><i data-lucide="lightbulb"></i>Dicas para Economizar</h4><div class="space-y-4"><div><h4 class="font-semibold text-lg flex items-center"><i data-lucide="utensils-crossed"></i>Comida</h4>`;
-            const alimentacaoDicas = Array.isArray(data.dicas_economia.alimentacao) ? data.dicas_economia.alimentacao : [String(data.dicas_economia.alimentacao)];
-            alimentacaoDicas.forEach(dica => {
+            data.dicas_economia.alimentacao.forEach(dica => {
                 dicasHtml += `<p class="text-sm text-gray-600 ml-7">- ${dica}</p>`;
             });
             dicasHtml += `</div><div><h4 class="font-semibold text-lg flex items-center"><i data-lucide="gift"></i>Lembrancinhas</h4>`;
-            const lembrancinhasDicas = Array.isArray(data.dicas_economia.lembrancinhas) ? data.dicas_economia.lembrancinhas : [String(data.dicas_economia.lembrancinhas)];
-            lembrancinhasDicas.forEach(dica => {
+            data.dicas_economia.lembrancinhas.forEach(dica => {
                  dicasHtml += `<p class="text-sm text-gray-600 ml-7">- ${dica}</p>`;
             });
             dicasHtml += `</div></div></div>`;
@@ -295,10 +277,8 @@ Responda apenas com o JSON.`;
                 });
             });
             
-            // Ativar a primeira aba por padrão
             switchTab('roteiro');
             
-            // Renderiza os ícones
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
